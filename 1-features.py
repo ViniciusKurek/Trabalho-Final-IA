@@ -79,13 +79,15 @@ def extract_features(imgPath):
     img = cv2.imread(imgPath)
     features = []
     #features.extend(extract_hu_moments(img))
-    #features.extend(extract_cnn_features(imgPath))
+    features.extend(extract_img2vec_features(img, model='densenet161'))
 
     for imgSection in split_img(img):
         features.extend(extract_hsv_histogram(imgSection))
         # features.extend(extract_hog(imgSection))
         # features.extend(extract_lbp(imgSection))
         pass
+    
+    return features
 
 
 dataPath = "simpsons"

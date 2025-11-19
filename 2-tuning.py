@@ -65,6 +65,9 @@ def test_baselines():
 
             print(f"Resultados salvos em: {results}")
 
+ENSEMBLE_DIR = './ensemble'
+os.makedirs(ENSEMBLE_DIR, exist_ok=True)
+
 def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, average='weighted'), cv=10, top_n=5):
     start_time = time.perf_counter()
 
@@ -90,7 +93,6 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
     )
     gridSearch.fit(xTrain, yTrainEncoded)
 
-
     # Extrai os top N resultados do GridSearch
     results = gridSearch.cv_results_
     scores = results['mean_test_score']
@@ -98,6 +100,8 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
     stds = results.get('std_test_score', None)
     order = np.argsort(scores)[::-1]
     top_n = min(top_n, len(order))
+
+    model_type = model.__class__.__name__
 
     print(f"\nTop {top_n} configurações do GridSearch para {model} (ordenadas por mean_test_score):")
     top_models = []
@@ -110,6 +114,8 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
         # re-treina o estimador com esses parâmetros para obter o modelo ajustado
         est = clone(model).set_params(**p)
         est.fit(xTrain, yTrainEncoded)
+        filename = f"{model_type}_rank_{rank}.joblib"
+        joblib.dump(est, os.path.join(ENSEMBLE_DIR, filename))
         pred_est = est.predict(xValidation)
 
         # imprime relatório e matriz de confusão para este modelo
@@ -133,21 +139,9 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
         except Exception as e:
             print(f"Erro ao escrever em {filepath}: {e}")
 
-        # guarda informações úteis para uso posterior
-        top_models.append({
-            'rank': rank,
-            'params': p,
-            'score': s,
-            'std': sd,
-            'estimator': est,
-            'confusion_matrix': cm_est
-        })
-
         time_elapsed = time.perf_counter() - start_time
         with open(filepath, "a", encoding="utf-8") as out:
             out.write(f"\nTempo decorrido até agora: {time_elapsed:.2f} segundos\n")
-
-    return top_models
 
 
 results_folder = "./resultados"
@@ -196,8 +190,7 @@ def mlp():
     model_tuning(model=MLPClassifier(), param_grid=mlp_grid, filepath=filepath)
 
 # Busca melhores configurações para cada classificador
-knn()
+#knn()
 rf()
 svm()
 mlp()
-   
