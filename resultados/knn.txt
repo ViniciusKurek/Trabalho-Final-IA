@@ -1,0 +1,128 @@
+Iniciando testes do KNN
+
+Fitting 10 folds for each of 12 candidates, totalling 120 fits
+
+Top 5 configurações do GridSearch para KNeighborsClassifier() (ordenadas por mean_test_score):
+
+#1: score=0.7786 (+/-0.0874) params={'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'distance'}
+Estimador ajustado:
+KNeighborsClassifier(metric='manhattan', n_neighbors=3, weights='distance')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.7317    0.8571    0.7895        35
+       homer     0.7407    0.8000    0.7692        25
+        lisa     1.0000    0.6923    0.8182        13
+      maggie     0.8571    1.0000    0.9231        12
+       marge     1.0000    0.4000    0.5714        10
+
+    accuracy                         0.7895        95
+   macro avg     0.8659    0.7499    0.7743        95
+weighted avg     0.8149    0.7895    0.7820        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         30          5          0          0          0
+          homer          3         20          0          2          0
+           lisa          3          1          9          0          0
+         maggie          0          0          0         12          0
+          marge          5          1          0          0          4
+
+#2: score=0.7774 (+/-0.0710) params={'metric': 'euclidean', 'n_neighbors': 5, 'weights': 'distance'}
+Estimador ajustado:
+KNeighborsClassifier(metric='euclidean', weights='distance')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.6818    0.8571    0.7595        35
+       homer     0.7083    0.6800    0.6939        25
+        lisa     0.7500    0.6923    0.7200        13
+      maggie     1.0000    1.0000    1.0000        12
+       marge     1.0000    0.3000    0.4615        10
+
+    accuracy                         0.7474        95
+   macro avg     0.8280    0.7059    0.7270        95
+weighted avg     0.7718    0.7474    0.7358        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         30          5          0          0          0
+          homer          5         17          3          0          0
+           lisa          3          1          9          0          0
+         maggie          0          0          0         12          0
+          marge          6          1          0          0          3
+
+#3: score=0.7715 (+/-0.0846) params={'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}
+Estimador ajustado:
+KNeighborsClassifier(metric='manhattan', weights='distance')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.7273    0.9143    0.8101        35
+       homer     0.7826    0.7200    0.7500        25
+        lisa     0.8333    0.7692    0.8000        13
+      maggie     0.9231    1.0000    0.9600        12
+       marge     1.0000    0.3000    0.4615        10
+
+    accuracy                         0.7895        95
+   macro avg     0.8533    0.7407    0.7563        95
+weighted avg     0.8098    0.7895    0.7752        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         32          3          0          0          0
+          homer          4         18          2          1          0
+           lisa          2          1         10          0          0
+         maggie          0          0          0         12          0
+          marge          6          1          0          0          3
+
+#4: score=0.7694 (+/-0.0965) params={'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'uniform'}
+Estimador ajustado:
+KNeighborsClassifier(metric='manhattan', n_neighbors=3)
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.6522    0.8571    0.7407        35
+       homer     0.7600    0.7600    0.7600        25
+        lisa     1.0000    0.6923    0.8182        13
+      maggie     1.0000    1.0000    1.0000        12
+       marge     1.0000    0.3000    0.4615        10
+
+    accuracy                         0.7684        95
+   macro avg     0.8824    0.7219    0.7561        95
+weighted avg     0.8087    0.7684    0.7598        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         30          5          0          0          0
+          homer          6         19          0          0          0
+           lisa          4          0          9          0          0
+         maggie          0          0          0         12          0
+          marge          6          1          0          0          3
+
+#5: score=0.7664 (+/-0.0855) params={'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'uniform'}
+Estimador ajustado:
+KNeighborsClassifier(metric='manhattan')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.6400    0.9143    0.7529        35
+       homer     0.7826    0.7200    0.7500        25
+        lisa     1.0000    0.6154    0.7619        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     1.0000    0.3000    0.4615        10
+
+    accuracy                         0.7579        95
+   macro avg     0.8845    0.6933    0.7366        95
+weighted avg     0.8102    0.7579    0.7484        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         32          3          0          0          0
+          homer          7         18          0          0          0
+           lisa          5          0          8          0          0
+         maggie          0          1          0         11          0
+          marge          6          1          0          0          3
+
+Tempo decorrido (KNN): 162.80 segundos
+

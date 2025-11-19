@@ -1,11 +1,18 @@
 import cv2
+import os
 import numpy as np
-from skimage.feature import hog, local_binary_pattern, 
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.applications.resnet50 import preprocess_input
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
-from scipy.fft import fft2, ifft2
+from skimage.feature import hog, local_binary_pattern, graycomatrix, graycoprops
+from img2vec_pytorch import Img2Vec
+import joblib
+from PIL import Image
+
+from typing import List, Dict, Any
+
+
+baseline_dir = os.path.join(".", "baseline2")
+BASELINE = True
+
+TRAIN = False
 
 def extract_hu_moments(img):
     grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -35,7 +42,6 @@ def extract_hog(img, pixelsPerCell=16, cellsPerBlock=2):
                     feature_vector=True)
     return hogFeatures
 
-
 def extract_lbp(img, P=64, R=3):
     grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     lbp = local_binary_pattern(grayImg, P, R, method='uniform')
@@ -46,7 +52,6 @@ def extract_lbp(img, P=64, R=3):
                            density=True)
     return hist
 
-# Matiz será dividida em hBins, Saturação em sBins
 def extract_hsv_histogram(img, hBins=30, sBins=4):
     hsvImg = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     hist = cv2.calcHist(
@@ -59,15 +64,18 @@ def extract_hsv_histogram(img, hBins=30, sBins=4):
     cv2.normalize(hist, hist, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
     return hist.flatten()
 
-def extract_cnn_features(img_path):
-    img = image.load_img(img_path, target_size=(128, 256))
-    imgArray = image.img_to_array(img)
-    imgArray = np.expand_dims(imgArray, axis=0)
-    imgArray = preprocess_input(imgArray)
-    baseModel = ResNet50(weights='imagenet', include_top=False, pooling='avg')
-    featureExtractor = Model(inputs=baseModel.input, outputs=baseModel.output)
-    features = featureExtractor.predict(imgArray)
-    return features.flatten()
+def extract_glcm_features(img, distances =[1,3,5], angles = np.deg2rad([0,90,180,270])):
+    grayImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = cv2.resize(grayImg, (128, 256))
+    hists = graycomatrix(img, distances=distances, angles=angles, normed=True, symmetric=True)
+    propNames = ["contrast", "dissimilarity", "homogeneity", "ASM", "energy", "correlation"]
+    props = np.array([ graycoprops(hists, prop).flatten() for prop in propNames]).flatten()
+    return props
+
+def extract_img2vec_features(img, model):
+    img2vec = Img2Vec(cuda=False, model=model)
+    vec = img2vec.get_vec(img)
+    return vec
 
 def split_img(img):
     height = img.shape[0]
@@ -76,16 +84,129 @@ def split_img(img):
     lower = img[cutPoint:, :]
     return lower, upper
 
-def extract_features(imgPath):
+
+def extract_features_baseline(imgPath):
     img = cv2.imread(imgPath)
-    features = []
-    #features.extend(extract_hu_moments(img))
-    #features.extend(extract_cnn_features(imgPath))
+    if img is None:
+        return None
+    feats = {}
+    # global features
+    feats['densenet161'] = np.asarray(extract_img2vec_features(img, 'densenet161')).flatten()
+    feats['hu'] = np.asarray(extract_hu_moments(img)).flatten()
+    feats['glcm'] = np.asarray(extract_glcm_features(img)).flatten()
 
-    for imgSection in split_img(img):
-        features.extend(extract_hsv_histogram(imgSection))
-        # features.extend(extract_hog(imgSection))
-        # features.extend(extract_lbp(imgSection))
-        pass
+    # section features (concatenate lower + upper for each feature type)
+    hsv_parts = []
+    hog_parts = []
+    lbp_parts = []
+    for section in split_img(img):
+        hsv_parts.append(np.asarray(extract_hsv_histogram(section)).flatten())
+        hog_parts.append(np.asarray(extract_hog(section)).flatten())
+        lbp_parts.append(np.asarray(extract_lbp(section)).flatten())
 
-    return features
+    feats['hsv'] = np.concatenate(hsv_parts)
+    feats['hog'] = np.concatenate(hog_parts)
+    feats['lbp'] = np.concatenate(lbp_parts)
+
+    # ensure all are plain numpy arrays
+    for k in list(feats.keys()):
+        feats[k] = np.asarray(feats[k]).flatten()
+
+    return feats
+
+def features_train(features):
+    """
+    Recebe uma lista de features (nomes ou caminhos para arquivos .joblib) gerados separadamente
+    e concatena em um único arquivo joblib salvo em baseline_dir/combined_baseline.joblib.
+    Retorna o caminho do arquivo gerado e o dicionário combinado.
+    """
+    # estrutura alvo
+    combined = {
+        'training_data': [],
+        'validation_data': [],
+        'training_labels': [],
+        'validation_labels': []
+    }
+
+    if isinstance(features, str):
+        features = [features]
+
+    for feat in features:
+        # determina caminho do arquivo .joblib
+        if os.path.isfile(feat):
+            path = feat
+        else:
+            fname = feat if feat.endswith('.joblib') else f"{feat}.joblib"
+            path = os.path.join(baseline_dir, fname)
+
+        if not os.path.exists(path):
+            print(f"Aviso: arquivo de features não encontrado: {path}")
+            continue
+
+        try:
+            loaded = joblib.load(path)
+        except Exception:
+            # pula arquivos que não puderam ser carregados
+            continue
+
+        # concatena safetly, esperando chaves padrão
+        for key in combined.keys():
+            val = loaded.get(key)
+            if val is None:
+                continue
+            # aceita tanto listas quanto numpy arrays
+            if isinstance(val, np.ndarray):
+                combined[key].extend(val.tolist())
+            else:
+                combined[key].extend(list(val))
+
+    # salva arquivo combinado
+    out_name = "combined_baseline.joblib"
+    out_path = os.path.join(baseline_dir, out_name)
+    joblib.dump(combined, out_path)
+
+    return out_path, combined
+
+def main():
+    dataPath = "simpsons"
+    trainPath = os.path.join(dataPath, "train")
+    validPath = os.path.join(dataPath, "valid")
+
+    baseline_features_names = ['densenet161', 'hu', 'glcm', 'hsv', 'hog', 'lbp']
+
+    # prepare storage structure for each feature (separate joblib files later)
+    storage_baseline = {name: {'training_data': [], 'validation_data': [], 'training_labels': [], 'validation_labels': []}
+            for name in baseline_features_names}
+    
+    # storage único (não separado por feature) — acumula vetores completos para treino/validação
+    storage_train = {'training_data': [], 'validation_data': [], 'training_labels': [], 'validation_labels': []}
+
+    # preenche storage por-feature (baseline) — comportamento original
+    for j, dataType in enumerate([trainPath, validPath]):
+        dataset_key = ['training_data', 'validation_data'][j]
+        labels_key = ['training_labels', 'validation_labels'][j]
+
+        for category in os.listdir(dataType):
+            categoryPath = os.path.join(dataType, category)
+            if not os.path.isdir(categoryPath):
+                continue
+        
+            for imgName in os.listdir(categoryPath):
+                imgPath = os.path.join(categoryPath, imgName)
+
+                if BASELINE == True:
+                    feats = extract_features_baseline(imgPath)
+                    if feats is None:
+                        continue
+
+                    for name in baseline_features_names:
+                        storage_baseline[name][dataset_key].append(feats[name].tolist())
+                        storage_baseline[name][labels_key].append(category)
+
+                    vec_baseline = np.concatenate([np.asarray(feats[name]).flatten() for name in baseline_features_names])
+
+                    combined_storage_baseline[dataset_key].append(vec_baseline.tolist())
+                    combined_storage_baseline[labels_key].append(category)
+
+
+features_train(['./baseline/densenet161.joblib', './baseline/hsv.joblib'])

@@ -1,0 +1,9 @@
+Baseline calcula em um random forest com os seguintes parâmetros:
+
+param_grid = {
+    'n_estimators': 200,
+    'max_depth': None, 
+    'max_features': 0.5,
+    'class_weight': 'balanced'
+}
+

@@ -1,0 +1,129 @@
+
+Iniciando testes do SVM
+
+Fitting 10 folds for each of 24 candidates, totalling 240 fits
+
+Top 5 configurações do GridSearch para SVC() (ordenadas por mean_test_score):
+
+#1: score=0.8081 (+/-0.0674) params={'C': 10.0, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+Estimador ajustado:
+SVC(C=10.0, class_weight='balanced', gamma='auto')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.8049    0.9429    0.8684        35
+       homer     0.7692    0.8000    0.7843        25
+        lisa     1.0000    0.6923    0.8182        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     1.0000    0.8000    0.8889        10
+
+    accuracy                         0.8526        95
+   macro avg     0.9148    0.8304    0.8633        95
+weighted avg     0.8674    0.8526    0.8527        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         33          2          0          0          0
+          homer          5         20          0          0          0
+           lisa          2          2          9          0          0
+         maggie          0          1          0         11          0
+          marge          1          1          0          0          8
+
+#2: score=0.8074 (+/-0.0675) params={'C': 1.0, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+Estimador ajustado:
+SVC(class_weight='balanced')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.8158    0.8857    0.8493        35
+       homer     0.7097    0.8800    0.7857        25
+        lisa     1.0000    0.6154    0.7619        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     1.0000    0.7000    0.8235        10
+
+    accuracy                         0.8316        95
+   macro avg     0.9051    0.7996    0.8354        95
+weighted avg     0.8557    0.8316    0.8314        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         31          4          0          0          0
+          homer          3         22          0          0          0
+           lisa          2          3          8          0          0
+         maggie          0          1          0         11          0
+          marge          2          1          0          0          7
+
+#3: score=0.8061 (+/-0.0764) params={'C': 1.0, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}
+Estimador ajustado:
+SVC(class_weight='balanced', gamma='auto')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.8056    0.8286    0.8169        35
+       homer     0.7000    0.8400    0.7636        25
+        lisa     0.9000    0.6923    0.7826        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     0.8750    0.7000    0.7778        10
+
+    accuracy                         0.8105        95
+   macro avg     0.8561    0.7955    0.8195        95
+weighted avg     0.8226    0.8105    0.8117        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         29          5          0          0          1
+          homer          3         21          1          0          0
+           lisa          2          2          9          0          0
+         maggie          0          1          0         11          0
+          marge          2          1          0          0          7
+
+#4: score=0.7998 (+/-0.0655) params={'C': 10.0, 'class_weight': None, 'gamma': 'scale', 'kernel': 'rbf'}
+Estimador ajustado:
+SVC(C=10.0)
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.7500    0.9429    0.8354        35
+       homer     0.8333    0.8000    0.8163        25
+        lisa     1.0000    0.7692    0.8696        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     1.0000    0.6000    0.7500        10
+
+    accuracy                         0.8421        95
+   macro avg     0.9167    0.8058    0.8456        95
+weighted avg     0.8640    0.8421    0.8414        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         33          2          0          0          0
+          homer          5         20          0          0          0
+           lisa          2          1         10          0          0
+         maggie          1          0          0         11          0
+          marge          3          1          0          0          6
+
+#5: score=0.7998 (+/-0.0655) params={'C': 10.0, 'class_weight': 'balanced', 'gamma': 'scale', 'kernel': 'rbf'}
+Estimador ajustado:
+SVC(C=10.0, class_weight='balanced')
+Relatório de classificação:
+              precision    recall  f1-score   support
+
+        bart     0.7500    0.9429    0.8354        35
+       homer     0.8333    0.8000    0.8163        25
+        lisa     1.0000    0.7692    0.8696        13
+      maggie     1.0000    0.9167    0.9565        12
+       marge     1.0000    0.6000    0.7500        10
+
+    accuracy                         0.8421        95
+   macro avg     0.9167    0.8058    0.8456        95
+weighted avg     0.8640    0.8421    0.8414        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         33          2          0          0          0
+          homer          5         20          0          0          0
+           lisa          2          1         10          0          0
+         maggie          1          0          0         11          0
+          marge          3          1          0          0          6
+
+Tempo decorrido (SVM): 295.31 segundos
+

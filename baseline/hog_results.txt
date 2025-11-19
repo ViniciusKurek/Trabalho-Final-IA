@@ -1,0 +1,21 @@
+Relatório final do Random Forest com parâmetros escolhidos, baseline: hog.joblib
+
+              precision    recall  f1-score   support
+
+        bart     0.4384    0.9143    0.5926        35
+       homer     0.6316    0.4800    0.5455        25
+        lisa     0.6667    0.1538    0.2500        13
+      maggie     0.0000    0.0000    0.0000        12
+       marge     0.0000    0.0000    0.0000        10
+
+    accuracy                         0.4842        95
+   macro avg     0.3473    0.3096    0.2776        95
+weighted avg     0.4189    0.4842    0.3961        95
+
+Matriz de Confusão:
+                      bart      homer       lisa     maggie      marge
+           bart         32          3          0          0          0
+          homer         13         12          0          0          0
+           lisa         10          1          2          0          0
+         maggie         10          2          0          0          0
+          marge          8          1          1          0          0
