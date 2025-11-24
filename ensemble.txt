@@ -1,0 +1,21 @@
+
+--- Relatório de Classificação ---
+              precision    recall  f1-score   support
+
+        bart       0.79      0.94      0.86        35
+       homer       0.77      0.80      0.78        25
+        lisa       1.00      0.69      0.82        13
+      maggie       1.00      0.92      0.96        12
+       marge       1.00      0.70      0.82        10
+
+    accuracy                           0.84        95
+   macro avg       0.91      0.81      0.85        95
+weighted avg       0.86      0.84      0.84        95
+
+
+--- Matriz de Confusão ---
+[[33  2  0  0  0]
+ [ 5 20  0  0  0]
+ [ 2  2  9  0  0]
+ [ 0  1  0 11  0]
+ [ 2  1  0  0  7]]
