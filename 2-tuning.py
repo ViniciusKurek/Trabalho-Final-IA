@@ -10,67 +10,11 @@ import joblib
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.base import clone
 from sklearn.neural_network import MLPClassifier
-import time
-import sys
-
-def test_baselines():
-    baseline_folder = "./baseline"
-    rf_classifier = RandomForestClassifier()
-    rf_classifier.set_params(
-        n_estimators=200,
-        max_depth=None,
-        max_features=0.5,
-        class_weight='balanced'
-    )
-    for name in os.listdir(baseline_folder):
-        if name.endswith(".joblib"):
-            file = os.path.join(baseline_folder, name)
-            data = joblib.load(file)
-
-            xTrain = data['training_data']
-            yTrain = data['training_labels']
-            xValidation = data['validation_data']
-            yValidation = data['validation_labels']
-
-            encoder = LabelEncoder()
-            yTrainEncoded = encoder.fit_transform(yTrain)
-            yValidationEncoded = encoder.transform(yValidation)
-
-
-            rf_classifier.fit(xTrain, yTrainEncoded)
-            pred = rf_classifier.predict(xValidation)
-            # print(f"Relatório final do Random Forest com parâmetros escolhidos, baseline: {name}")
-            report_str = classification_report(yValidationEncoded, pred, target_names=encoder.classes_, digits=4)
-            # print(report_str)
-            cm = confusion_matrix(yValidationEncoded, pred)
-            # print("Matriz de Confusão:\n", cm)
-
-            # monta caminho do arquivo de resultados (um .txt por baseline)
-            results = os.path.join(baseline_folder, name.replace('.joblib', '') + '_results.txt')
-
-            # formata matriz de confusão com rótulos legíveis
-            labels = encoder.classes_
-            header = " " * 16 + " ".join(f"{lab:>10}" for lab in labels) + "\n"
-            rows = ""
-            for i, row in enumerate(cm):
-                rows += f"{labels[i]:>15} " + " ".join(f"{int(v):10d}" for v in row) + "\n"
-
-            # escreve tudo no arquivo
-            with open(results, "w", encoding="utf-8") as f:
-                f.write(f"Relatório final do Random Forest com parâmetros escolhidos, baseline: {name}\n\n")
-                f.write(report_str + "\n")
-                f.write("Matriz de Confusão:\n")
-                f.write(header)
-                f.write(rows)
-
-            print(f"Resultados salvos em: {results}")
 
 ENSEMBLE_DIR = './ensemble'
 os.makedirs(ENSEMBLE_DIR, exist_ok=True)
 
 def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, average='weighted'), cv=10, top_n=5):
-    start_time = time.perf_counter()
-
     # carrega os dados extraídos
     data = joblib.load('features.joblib')
     xTrain = data['training_data']
@@ -104,12 +48,10 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
     model_type = model.__class__.__name__
 
     print(f"\nTop {top_n} configurações do GridSearch para {model} (ordenadas por mean_test_score):")
-    top_models = []
     for rank, idx in enumerate(order[:top_n], start=1):
         p = params[idx]
         s = scores[idx]
         sd = stds[idx] if stds is not None else 0.0
-        print(f"\n#{rank}: score={s:.4f} (+/-{sd:.4f}) params={p}")
 
         # re-treina o estimador com esses parâmetros para obter o modelo ajustado
         est = clone(model).set_params(**p)
@@ -122,6 +64,7 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
         # grava as mesmas mensagens em arquivo de resultados
         try:
             with open(filepath, "a", encoding="utf-8") as out:
+                out.write(f"\n#{rank}: score={s:.4f} (+/-{sd:.4f}) params={p}" + "\n")
                 out.write("Estimador ajustado:\n")
                 out.write(str(est) + "\n")
                 out.write("Relatório de classificação:\n")
@@ -138,10 +81,6 @@ def model_tuning(filepath, model, param_grid, scoring=make_scorer(f1_score, aver
                     out.write(f"{labels[i]:>15} " + " ".join(f"{int(v):10d}" for v in row) + "\n")
         except Exception as e:
             print(f"Erro ao escrever em {filepath}: {e}")
-
-        time_elapsed = time.perf_counter() - start_time
-        with open(filepath, "a", encoding="utf-8") as out:
-            out.write(f"\nTempo decorrido até agora: {time_elapsed:.2f} segundos\n")
 
 
 results_folder = "./resultados"
@@ -172,7 +111,8 @@ def svm():
         'C': [0.1, 1.0, 10.0],
         'kernel': ['rbf', 'linear'],
         'gamma': ['scale', 'auto'],
-        'class_weight': ['balanced', None]
+        'class_weight': ['balanced', None],
+        'probability': [True]
     }
     model_tuning(model=SVC(), param_grid=svm_grid, filepath=filepath)
 
@@ -190,7 +130,7 @@ def mlp():
     model_tuning(model=MLPClassifier(), param_grid=mlp_grid, filepath=filepath)
 
 # Busca melhores configurações para cada classificador
-#knn()
+knn()
+mlp()
 rf()
 svm()
-mlp()
